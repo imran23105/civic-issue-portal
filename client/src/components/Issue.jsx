@@ -1,41 +1,53 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import SnailLoader from "../components/Loader";
-
-const cleanPath = (path) => {
-  if (!path) return null;
-
-  // ✅ If already absolute URL (Cloudinary etc.)
-  if (path.startsWith("http")) {
-    return path;
-  }
-
-  // ✅ For local/uploads images
-  return `http://localhost:8080/${path
-    .replace(/^.*?uploads/, "uploads")
-    .replace(/\\/g, "/")
-    .replace(/\/+/g, "/")}`;
-};
 
 function Issue() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isScrolling, setIsScrolling] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
+  const scrollTimer = useRef(null);
+
   const user = localStorage.getItem("loggedInUser");
 
   useEffect(() => {
     fetch("http://localhost:8080/api/issues")
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
         setIssues(data);
         setLoading(false);
       });
   }, []);
 
+  // ✅ Auto play (pause when scrolling or expanded)
+  useEffect(() => {
+    if (issues.length === 0 || isScrolling || expanded) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % issues.length);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [issues, isScrolling, expanded]);
+
+  const handleScroll = () => {
+    setIsScrolling(true);
+    if (scrollTimer.current) clearTimeout(scrollTimer.current);
+
+    scrollTimer.current = setTimeout(() => {
+      setIsScrolling(false);
+    }, 1000);
+  };
+
   if (loading) return <SnailLoader />;
 
+  const currentIssue = issues[currentIndex];
+
   return (
-    <div className="p-8 bg-gray-50 ">
-      <div className="mb-10">
+    <div className="p-10 min-h-screen">
+      <div className="mb-10 text-center">
         <h1 className="text-3xl font-extrabold text-gray-900 mb-2">
           Welcome, <span className="text-indigo-600">{user}</span>
         </h1>
@@ -44,71 +56,104 @@ function Issue() {
         </p>
       </div>
 
-      <h3 className="text-2xl font-semibold mb-6 text-gray-800">
-        Reported Issues
-      </h3>
+      {/* 🌈 GRADIENT BORDER CARD */}
+      <div className="max-w-5xl mx-auto bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 p-[2px] rounded-3xl shadow-2xl">
+        <div
+          className={`bg-white rounded-3xl overflow-hidden flex transition-all duration-300 ${
+            expanded ? "h-[500px]" : "h-72"
+          }`}
+        >
+          {/* LEFT IMAGE */}
+          {currentIssue.imageURL && (
+            <img
+              src={currentIssue.imageURL}
+              alt={currentIssue.title}
+              className="w-1/2 h-full object-cover p-4 rounded-3xl"
+            />
+          )}
 
-      {/* Horizontal scroll list */}
-      <div className="flex overflow-x-auto gap-6 pb-4">
-        {issues.map((issue) => (
+          {/* RIGHT TEXT */}
           <div
-            id="report-categories"
-            key={issue._id}
-            className="bg-white min-w-[350px] rounded-xl shadow-md hover:shadow-lg transition-all duration-300 border border-gray-100"
+            onScroll={handleScroll}
+            className="w-1/2 p-6 overflow-y-auto"
+            style={{ scrollbarWidth: "none" }}
           >
-            {/* Image section */}
-            {issue.imageURL && (
-              <div className="relative">
-                
-                <img
-                  src={issue.imageURL}
-                  alt={issue.title}
-                  className="h-48 w-full object-cover rounded-t-xl"
-                  loading="lazy"
-                  onError={(e) => {
-                    console.error("Image failed:", e.target.src);
-                    e.target.style.display = "none";
-                  }}
-                />
+            <div className="h-full p-4">
+              <span className="inline-block mb-3 px-4 py-1 text-xs font-semibold bg-gradient-to-r from-indigo-100 to-pink-100 text-indigo-700 rounded-full">
+                {currentIssue.category}
+              </span>
 
-                <div className="absolute top-3 left-3 bg-white/80 text-xs font-semibold px-2 py-1 rounded-lg text-gray-800 backdrop-blur">
-                  {issue.category}
-                </div>
-              </div>
-            )}
-
-            {/* Info section */}
-            <div className="p-5">
-              <h2 className="text-lg font-bold text-gray-900 mb-2">
-                {issue.title}
+              <h2 className="text-2xl font-bold mb-3 text-gray-900">
+                {currentIssue.title}
               </h2>
-              <p className="text-gray-600 text-sm mb-3 leading-relaxed line-clamp-3">
-                {issue.description}
+
+              <p
+                className={`text-gray-600 leading-relaxed mb-2 ${
+                  expanded ? "" : "line-clamp-3"
+                }`}
+              >
+                {currentIssue.description}
               </p>
 
-              <div className="flex justify-between items-center mt-3">
-                <div>
-                  <span className="font-semibold text-sm text-gray-700">
-                    Status:
-                  </span>{" "}
+              {currentIssue.description?.length > 120 && (
+                <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="text-indigo-600 font-semibold text-sm hover:underline"
+                >
+                  {expanded ? "Show Less" : "Read More"}
+                </button>
+              )}
+
+              <div className="mt-6 flex justify-between items-center">
+                <span className="font-semibold">
+                  Status:{" "}
                   <span
-                    className={`font-bold text-sm ${
-                      issue.status === "Resolved"
+                    className={`${
+                      currentIssue.status === "Resolved"
                         ? "text-green-600"
-                        : issue.status === "In Progress"
+                        : currentIssue.status === "In Progress"
                         ? "text-yellow-600"
                         : "text-red-600"
                     }`}
                   >
-                    {issue.status}
+                    {currentIssue.status}
                   </span>
-                </div>
-                <div className="text-xs text-gray-400">
-                  {new Date(issue.createdAt).toLocaleDateString()}
-                </div>
+                </span>
+
+                <span className="text-sm text-gray-400">
+                  {new Date(currentIssue.createdAt).toLocaleDateString()}
+                </span>
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* 🌈 THUMBNAILS WITH COLOR BORDER */}
+      <div className="flex justify-center mt-10 gap-5 flex-wrap">
+        {issues.map((issue, index) => (
+          <button
+            key={issue._id}
+            onClick={() => {
+              setCurrentIndex(index);
+              setExpanded(false);
+            }}
+            className={`p-[2px] rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 transition-all duration-300 ${
+              currentIndex === index ? "scale-110 shadow-xl" : "opacity-70"
+            }`}
+          >
+            <div className="w-16 h-16 rounded-full overflow-hidden bg-white">
+              {issue.imageURL ? (
+                <img
+                  src={issue.imageURL}
+                  alt={issue.title}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-300"></div>
+              )}
+            </div>
+          </button>
         ))}
       </div>
     </div>

@@ -15,10 +15,10 @@ const UserDashboard = () => {
     <div className="w-full overflow-x-hidden">
       <div className="max-w-screen-xl mx-auto px-4">
         <HeroSection />
+         <Issue />
         <HowItWorks />
         <FeaturesSection />
         <ReportCategories />
-        <Issue />
         <ReportMap />
       </div>
     </div>
