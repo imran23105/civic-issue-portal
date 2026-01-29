@@ -1,6 +1,7 @@
 import React from "react";
 import { Camera, ArrowRight, MapPin, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import Slider1 from "./slider1";
 
 const Hero = () => {
   return (
@@ -67,28 +68,24 @@ const Hero = () => {
         </div>
 
         <div className="relative">
-          <div className="relative rounded-2xl overflow-hidden shadow-xl">
-            <img
-              src="https://images.unsplash.com/photo-1503264116251-35a269479413?q=80&w=1200"
-              alt="Community waterfall"
-              className="w-full h-[460px] object-cover"
-            />
+          <div className="relative rounded-2xl  pl-10">
+            <Slider1/>
 
            
-            <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-md border border-white/30 rounded-lg px-4 py-2 flex items-center gap-2 shadow-md">
+            {/* <div className="absolute top-4 left-4 bg-white/80 backdrop-blur-md border border-white/30 rounded-lg px-4 py-2 flex items-center gap-2 shadow-md">
               <div className="w-3 h-3 bg-green-500 rounded-full" />
               <span className="text-sm font-medium text-gray-800">
                 Issue Reported
               </span>
-            </div>
+            </div> */}
 
            
-            <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/30 rounded-lg px-4 py-2 flex items-center gap-2 shadow-md">
+            {/* <div className="absolute bottom-4 right-4 bg-white/80 backdrop-blur-md border border-white/30 rounded-lg px-4 py-2 flex items-center gap-2 shadow-md">
               <Users className="w-4 h-4 text-gray-700" />
               <span className="text-sm font-medium text-gray-800">
                 Community Active
               </span>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

@@ -31,7 +31,7 @@
         const lng = center.lng;
 
         const res = await fetch(
-          `https://civic-issue-portal-2.onrender.com/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
+          `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
         );
         const data = await res.json();
 
@@ -68,7 +68,7 @@
         const { lat, lng } = e.latlng;
 
         const res = await fetch(
-          `https://civic-issue-portal-2.onrender.com/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
+          `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
         );
         const data = await res.json();
 
@@ -130,7 +130,7 @@
         const lng = pos.coords.longitude;
 
         const res = await fetch(
-          `https://civic-issue-portal-2.onrender.com/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
+          `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
         );
         const data = await res.json();
 
@@ -170,7 +170,7 @@
       try {
         setAiLoading(true);
         const res = await fetch(
-          "https://civic-issue-portal-2.onrender.com/api/ai/analyze",
+          "http://localhost:8080/api/ai/analyze",
           {
             method: "POST",
             headers: {
@@ -208,7 +208,7 @@
 
     try {
       const res = await fetch(
-        "https://civic-issue-portal-2.onrender.com/api/vision/analyze",
+        "http://localhost:8080/api/vision/analyze",
         {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
@@ -259,7 +259,7 @@
 
   try {
     const res = await fetch(
-      "https://civic-issue-portal-2.onrender.com/api/issues",
+      "http://localhost:8080/api/issues",
       {
         method: "POST",
         headers: {

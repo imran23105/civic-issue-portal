@@ -38,7 +38,7 @@ const Register = () => {
     const errs = validate();
     setErrors(errs);
     if (Object.keys(errs).length === 0) {
-      const url = "https://civic-issue-portal-2.onrender.com/api/auth/signup";
+      const url = "http://localhost:8080/api/auth/signup";
       const response = await fetch(url, {
         method: "POST",
         headers: {
@@ -60,7 +60,7 @@ const Register = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded shadow mt-6">
+    <div className="max-w-md mx-auto p-6 bg-white rounded shadow mt-16">
       <h2 className="text-2xl font-bold mb-4 text-center">Register</h2>
       <form onSubmit={handleSubmit} noValidate>
         <div className="mb-4">

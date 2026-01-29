@@ -23,7 +23,7 @@
 // app.use(cors({
 //   origin: [
 //     "http://localhost:5173",
-//     "https://civic-issue-portal-2.onrender.com",
+//     "http://localhost:8080",
 //     "https://civic-issue-portal-omega.vercel.app"
 //   ],
 //   credentials: true,
@@ -94,7 +94,7 @@ console.log("OPENAI KEY EXISTS:", !!process.env.OPENAI_API_KEY);
 app.use(cors({
   origin: [
     "http://localhost:5173",
-    "https://civic-issue-portal-2.onrender.com",
+    "http://localhost:8080",
     "https://civic-issue-portal-omega.vercel.app"
   ],
   credentials: true,

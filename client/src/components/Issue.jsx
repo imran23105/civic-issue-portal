@@ -10,7 +10,7 @@ const cleanPath = (path) => {
   }
 
   // ✅ For local/uploads images
-  return `https://civic-issue-portal-2.onrender.com/${path
+  return `http://localhost:8080/${path
     .replace(/^.*?uploads/, "uploads")
     .replace(/\\/g, "/")
     .replace(/\/+/g, "/")}`;
@@ -22,7 +22,7 @@ function Issue() {
   const user = localStorage.getItem("loggedInUser");
 
   useEffect(() => {
-    fetch("https://civic-issue-portal-2.onrender.com/api/issues")
+    fetch("http://localhost:8080/api/issues")
       .then((res) => res.json())
       .then((data) => {
         console.log(data);

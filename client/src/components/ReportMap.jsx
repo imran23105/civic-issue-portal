@@ -19,7 +19,7 @@ function ReportMap() {
   const user = localStorage.getItem("loggedInUser");
 
   useEffect(() => {
-    fetch("https://civic-issue-portal-2.onrender.com/api/issues")
+    fetch("http://localhost:8080/api/issues")
       .then((res) => res.json())
       .then((data) => {
         setIssues(data);
