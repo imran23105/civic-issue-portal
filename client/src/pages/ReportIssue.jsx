@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -29,7 +29,7 @@ function MapCenterUpdater({ setForm }) {
       const lng = center.lng;
 
       const res = await fetch(
-        `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`,
+        `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
       );
       const data = await res.json();
 
@@ -58,34 +58,6 @@ L.Icon.Default.mergeOptions({
   shadowUrl: markerShadow,
 });
 
-/* 🗺️ Map click handler */
-function LocationPicker({ setForm }) {
-  useMapEvents({
-    async click(e) {
-      const { lat, lng } = e.latlng;
-
-      const res = await fetch(
-        `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`,
-      );
-      const data = await res.json();
-
-      setForm((prev) => ({
-        ...prev,
-        latitude: lat,
-        longitude: lng,
-        address: data.display_name || "",
-        city:
-          data.address?.city ||
-          data.address?.town ||
-          data.address?.village ||
-          "",
-        state: data.address?.state || "",
-      }));
-    },
-  });
-  return null;
-}
-
 const categories = [
   "Garbage",
   "Water Leak",
@@ -108,14 +80,12 @@ export default function ReportIssue() {
     state: "",
   });
 
-  const [aiSuggestion, setAiSuggestion] = useState(null);
   const [aiLoading, setAiLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [imageAnalyzed, setImageAnalyzed] = useState(false);
 
   const navigate = useNavigate();
-  // const token = localStorage.getItem("token");
   const token = localStorage.getItem("token") || "";
 
   /* 📍 Live GPS Location */
@@ -125,7 +95,7 @@ export default function ReportIssue() {
       const lng = pos.coords.longitude;
 
       const res = await fetch(
-        `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`,
+        `http://localhost:8080/api/location/reverse?format=json&lat=${lat}&lon=${lng}`
       );
       const data = await res.json();
 
@@ -147,40 +117,8 @@ export default function ReportIssue() {
   /* 🧹 Image preview cleanup */
   useEffect(
     () => () => imagePreview && URL.revokeObjectURL(imagePreview),
-    [imagePreview],
+    [imagePreview]
   );
-
-  /* 🧠 AI Text Analysis */
-  useEffect(() => {
-    if (imageAnalyzed) return;
-    if (form.title.length < 5 && form.description.length < 10) return;
-
-    const timer = setTimeout(() => analyzeText(), 700);
-    return () => clearTimeout(timer);
-  }, [form.title, form.description, imageAnalyzed]);
-
-  const analyzeText = async () => {
-    if (aiLoading || !token) return;
-    try {
-      setAiLoading(true);
-      const res = await fetch("http://localhost:8080/api/ai/analyze", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          title: form.title,
-          description: form.description,
-        }),
-      });
-      const data = await res.json();
-      setAiSuggestion(data);
-      setForm((p) => ({ ...p, category: data.category || p.category }));
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
@@ -200,13 +138,10 @@ export default function ReportIssue() {
       });
 
       const data = await res.json();
-      console.log("🧪 VISION API RAW RESPONSE:", data);
 
-
-      // 🔥 THIS MUST ALWAYS RUN
       setForm((p) => ({
         ...p,
-        image: data.imageUrl, // ✅ now NEVER null
+        image: data.imageUrl,
         title: data.title || p.title,
         description: data.description || p.description,
         category: data.category || p.category,
@@ -214,13 +149,11 @@ export default function ReportIssue() {
 
       setImageAnalyzed(true);
     } catch (err) {
-      // ❌ should almost never happen now
-      console.error("Vision API crashed", err);
+      console.error("Vision API failed", err);
     } finally {
       setAiLoading(false);
     }
   };
-
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -228,9 +161,7 @@ export default function ReportIssue() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log("TOKEN BEING SENT:", token);
-
-    if (!token || token === "null" || token === "undefined") {
+    if (!token) {
       alert("Session expired. Please login again.");
       return;
     }
@@ -238,10 +169,6 @@ export default function ReportIssue() {
     if (!form.title.trim()) return handleSuccess("Please enter issue title");
     if (!form.description.trim())
       return handleSuccess("Please enter issue description");
-    if (!form.image) {
-      console.warn("Image not analyzed by AI, proceeding anyway");
-    }
-    console.log("🧪 IMAGE BEFORE SUBMIT:", form.image);
 
     setSubmitting(true);
 
@@ -257,10 +184,7 @@ export default function ReportIssue() {
 
       const data = await res.json();
 
-      if (!res.ok) {
-        console.error("SUBMIT ERROR:", data);
-        throw new Error(data.message || "Submission failed");
-      }
+      if (!res.ok) throw new Error(data.message || "Submission failed");
 
       handleSuccess("Issue reported successfully!");
       setTimeout(() => navigate("/user/dashboard"), 1000);
@@ -273,114 +197,109 @@ export default function ReportIssue() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-10">
-      <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
-        <h1 className="text-3xl font-bold text-center text-blue-700">
+    <div className="min-h-screen bg-gradient-to-br from-gray-100 to-blue-50 py-10 px-4">
+      <div className="max-w-4xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
+        <h1 className="text-3xl font-extrabold text-center text-blue-700 mb-2">
           🚨 Report Civic Issue
         </h1>
-        <p className="text-center text-gray-500 mb-6">
-          Live AI + GPS enabled reporting system
+        <p className="text-center text-gray-500 mb-8">
+          AI-assisted civic issue reporting with live GPS
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-7">
+          {/* Title */}
           <div>
-            <p className="section-title">Issue Title</p>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Issue Title
+            </label>
             <input
               name="title"
               value={form.title}
               onChange={handleChange}
-              className="input"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500"
               placeholder="Eg: Garbage near main road"
               required
             />
           </div>
 
+          {/* Description */}
           <div>
-            <p className="section-title">Describe Issue</p>
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Issue Description
+            </label>
             <textarea
               name="description"
               value={form.description}
               onChange={handleChange}
-              rows="3"
-              className="input"
-              placeholder="Explain problem clearly..."
+              rows="4"
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-blue-500"
+              placeholder="Explain the issue clearly..."
               required
             />
           </div>
 
-          {/* 🏙️ City / State */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="section-title">City</p>
-              <input value={form.city} readOnly className="input bg-gray-100" />
-            </div>
-            <div>
-              <p className="section-title">State</p>
-              <input
-                value={form.state}
-                readOnly
-                className="input bg-gray-100"
-              />
-            </div>
-          </div>
-
-          <div>
-            <p className="section-title">Detected Location</p>
+          {/* City / State */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <input
-              value={form.address}
+              value={form.city}
               readOnly
-              className="input bg-gray-100"
+              className="rounded-lg bg-gray-100 px-4 py-3 border"
+            />
+            <input
+              value={form.state}
+              readOnly
+              className="rounded-lg bg-gray-100 px-4 py-3 border"
             />
           </div>
 
-          <div>
-            <p className="section-title">Upload Photo</p>
+          {/* Address */}
+          <input
+            value={form.address}
+            readOnly
+            className="w-full rounded-lg bg-gray-100 px-4 py-3 border"
+          />
+
+          {/* Upload */}
+          <div className="border-2 border-dashed rounded-xl p-5 text-center bg-gray-50">
+            <p className="font-semibold mb-2">Upload Issue Photo</p>
             <input
               type="file"
               onChange={handleImageChange}
-              required
-              className="block w-full text-sm file:bg-blue-600 file:text-white file:px-4 file:py-2 file:rounded file:border-0 file:cursor-pointer"
+              className="block w-full text-sm file:bg-blue-600 file:text-white file:px-4 file:py-2 file:rounded-lg"
             />
           </div>
 
           {imagePreview && (
-            <img
-              src={imagePreview}
-              className="h-40 w-full object-contain rounded-lg border"
-              alt="preview"
-            />
+            <div className="flex justify-center">
+              <img
+                src={imagePreview}
+                alt="preview"
+                className="max-h-48 rounded-xl border shadow"
+              />
+            </div>
           )}
 
-          {/* 🗺️ MAP */}
-          {/* 🗺️ MAP */}
-          <div>
-            <p className="section-title">Confirm Location on Map</p>
-
-            <div className="relative h-72 rounded-lg overflow-hidden border">
-              {form.latitude && form.longitude && (
-                <>
-                  <MapContainer
-                    center={[Number(form.latitude), Number(form.longitude)]}
-                    zoom={16}
-                    scrollWheelZoom
-                    className="h-full w-full"
-                  >
-                    <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
-                    <MapCenterUpdater setForm={setForm} />
-                  </MapContainer>
-
-                  {/* 📍 FIXED CENTER PIN */}
-                  <CenterPin />
-                </>
-              )}
-            </div>
+          {/* Map */}
+          <div className="relative h-72 rounded-xl overflow-hidden border">
+            {form.latitude && form.longitude && (
+              <>
+                <MapContainer
+                  center={[Number(form.latitude), Number(form.longitude)]}
+                  zoom={16}
+                  scrollWheelZoom
+                  className="h-full w-full"
+                >
+                  <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                  <MapCenterUpdater setForm={setForm} />
+                </MapContainer>
+                <CenterPin />
+              </>
+            )}
           </div>
 
           <button
-            disabled={
-              submitting || !form.title.trim() || !form.description.trim()
-            }
-            className="w-full bg-blue-600 disabled:bg-gray-400 hover:bg-blue-700 transition text-white py-3 rounded-full font-semibold text-lg"
+            disabled={submitting}
+            className="w-full bg-blue-600 disabled:bg-gray-400 hover:bg-blue-700 transition text-white py-3 rounded-full font-bold text-lg"
           >
             {submitting ? "Submitting..." : "Submit Issue"}
           </button>

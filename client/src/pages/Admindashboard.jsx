@@ -269,7 +269,7 @@ const AdminDashboard = () => {
         <button
           type="button"
           onClick={() => setShowCreateWorker(true)}
-          className="w-full md:w-auto bg-red-600 hover:bg-red-700 transition text-white px-5 sm:px-6 py-2 rounded-xl shadow-md"
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 transition text-white px-5 sm:px-6 py-2 rounded-xl shadow-md"
         >
           Create Authority
         </button>
@@ -392,11 +392,6 @@ const AdminDashboard = () => {
           value={filters.search}
           onChange={(e) => setFilters({ ...filters, search: e.target.value })}
         />
-      </div>
-
-      {/* Map */}
-      <div className="mb-10 sm:mb-14 bg-white p-4 sm:p-7 rounded-2xl sm:rounded-3xl shadow-xl">
-        <CityIssueMap issues={issues} />
       </div>
 
       {/* Table */}
@@ -632,6 +627,10 @@ const AdminDashboard = () => {
             </div>
           ))}
         </div>
+      </div>
+      {/* Map */}
+      <div className="mb-10 sm:mb-14 bg-white p-4 sm:p-7 rounded-2xl sm:rounded-3xl shadow-xl">
+        <CityIssueMap issues={issues} />
       </div>
     </div>
   );
